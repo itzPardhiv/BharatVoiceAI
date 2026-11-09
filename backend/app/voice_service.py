@@ -1240,7 +1240,7 @@ def _internal_process_voice_intent(
             "action_required": False,
         }
 
-    # 18. Rename store ("rename store to Supermart", "change store name to Pardhu Kirana")
+    # 18. Rename store ("rename store to Supermart", "change store name to Bharat Kirana")
     rename_match = re.search(r"(?:rename\s+store\s+to|change\s+store\s+name\s+to|set\s+store\s+name\s+to|దుకాణం\s*పేరు\s*మార్చు|दुकान\s*का\s*नाम\s*बदलो)\s+([a-zA-Z0-9\s&'-]+?)[.]?$", q, re.I)
     if rename_match:
         new_name = rename_match.group(1).strip().title()

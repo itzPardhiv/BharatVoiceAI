@@ -5,10 +5,11 @@
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 [![React: 18](https://img.shields.io/badge/Frontend-React%2018%20%7C%20TypeScript-61DAFB.svg)](https://react.dev/)
 [![Tests](https://img.shields.io/badge/Tests-119%20Passing-brightgreen.svg)]()
-[![Voice: Indic AI](https://img.shields.io/badge/Speech-Gnani%20Timbre%20%26%20Prisma-orange.svg)](https://gnani.ai)
+[![Voice: Gnani.ai Exclusive](https://img.shields.io/badge/Voice%20Engine-Gnani.ai%20Exclusive-orange.svg)](https://gnani.ai)
 
 > **Voice-First Retail Intelligence & Point-of-Sale System for Indian Store Owners.**  
-> Built for small retail businesses, supermarkets, and kirana stores with native multilingual speech recognition, double-entry financial accounting, and safety-guarded voice commands.
+> Built for small retail businesses, supermarkets, and kirana stores with native multilingual Indic speech recognition, double-entry financial accounting, and safety-guarded voice commands.  
+> **All voice input and output is exclusively powered by [Gnani.ai](https://gnani.ai) (Gnani Prisma STT & Gnani Timbre TTS).**
 
 ---
 
@@ -17,6 +18,7 @@
 - [Problem Statement](#-problem-statement)
 - [Project Objectives](#-project-objectives)
 - [Key Features](#-key-features)
+- [Exclusive Gnani.ai Voice Engine](#-exclusive-gnanai-voice-engine)
 - [Technologies & Tools Used](#-technologies--tools-used)
 - [System Architecture](#-system-architecture)
 - [Repository Structure](#-repository-structure)
@@ -32,7 +34,7 @@
 
 ## 📖 Overview
 
-**BharatVoice AI** is an intelligent, offline-first retail management and Point-of-Sale (POS) platform designed to bridge the digital divide for retail shopkeepers across India. By combining natural Indic voice interaction in regional languages (Telugu, Hindi, Tamil, Kannada, Malayalam, and Indian English) with double-entry accounting integrity, BharatVoice AI enables store owners to manage inventory, check sales velocity, issue itemized tax receipts, and record expenses entirely through spoken or text commands.
+**BharatVoice AI** is an intelligent, voice-first retail management and Point-of-Sale (POS) platform designed to bridge the digital divide for retail shopkeepers across India. Powered exclusively by **Gnani.ai's** neural Indic voice stack alongside strict double-entry ledger mechanics, BharatVoice AI enables store owners to speak naturally in their mother tongue (Telugu, Hindi, Indian English, Tamil, Kannada, or Malayalam) to check inventory, track gross and net profits, generate itemized tax receipts, and record expenses safely.
 
 ---
 
@@ -51,19 +53,51 @@ Traditional enterprise retail software and modern POS tools present steep learni
 - **Democratize Retail Technology:** Provide an intuitive, voice-first interface where store owners can speak naturally in their mother tongue.
 - **Enforce Financial Integrity:** Implement strict double-entry ledger mechanics where every transaction maintains debit/credit parity and generates audit trails.
 - **Guarantee Action Safety:** Introduce a **Financial Safety Confirmation Gate** that intercepts balance-altering operations and requires explicit user verification before committing.
-- **Ensure High Availability:** Deliver a resilient, local-first architecture (SQLite WAL mode + Gnani Conversational Voice Engine) with neural Indic speech integration (Gnani Prisma & Timbre).
+- **Exclusively Integrate Indic AI Voice:** Standardize 100% of speech recognition and voice synthesis on **Gnani.ai (Prisma STT & Timbre TTS)**, removing third-party or browser-fallback dependencies.
 
 ---
 
 ## ✨ Key Features
 
-- **🗣️ Multilingual Voice Assistant:** Supports Telugu, Hindi, English, Tamil, Kannada, and Malayalam. Accurately extracts retail entities (SKUs, quantities, prices, expense categories).
+- **🗣️ Exclusive Gnani.ai Indic Voice Engine:** 100% powered by Gnani Prisma STT for speech transcription and Gnani Timbre TTS for natural Indic speech synthesis across Telugu, Hindi, Indian English, Tamil, Kannada, and Malayalam.
 - **🛡️ Financial Safety Confirmation Gate:** Any spoken or typed command altering finances (e.g., *"Record electricity expense of 500 rupees"*) is caught by an amber confirmation gate, preventing unapproved ledger mutations.
 - **📊 Real-Time Central Dashboard:** Tracks Today's Sales, Completed Transactions, Products Listed, and Low-Stock Warnings alongside a 7-day sales velocity AreaChart.
 - **🧾 Point-of-Sale (POS) & Tax Invoicing:** Creates sequential bill records (`BV-SALE-...`), generates itemized tax receipts, and exports financial spreadsheets to CSV.
 - **📦 Inventory & Real-Time Stock Search:** Complete catalog management with real-time substring filtering, stock level indicators, and reorder alerts.
 - **🏪 Dynamic Store Personalization:** Configurable owner profiles, phone numbers, tax/GSTIN credentials, and store rebranding across all views.
 - **🧪 Comprehensive Test Coverage:** 119 unit and integration tests covering API routes, duplicate detection, fault injection, and financial consistency.
+
+---
+
+## 🎙️ Exclusive Gnani.ai Voice Engine
+
+BharatVoice AI eliminates all generic or browser-based speech synthesis in favor of an **exclusive integration with Gnani.ai's conversational AI platform**:
+
+```
++-----------------------------------------------------------------------------+
+|                          Gnani.ai Voice Stack                               |
++-----------------------------------------------------------------------------+
+| 1. Speech-to-Text (STT):                                                    |
+|    - HTML5 MediaRecorder captures raw shopkeeper audio (16-bit 48 kHz WAV)  |
+|    - Sent to backend `/api/voice/transcribe`                                |
+|    - Processed by Gnani Prisma STT (vachana.ai API endpoint)                 |
+|    - Handles mixed Indian vocabulary, retailer slang, and accent shifts     |
+|                                                                             |
+| 2. Text-to-Speech (TTS):                                                    |
+|    - Intent response synthesized by Gnani Timbre TTS                        |
+|    - Generated via backend `/api/voice/process` & `/api/voice/tts`           |
+|    - High-fidelity 48 kHz linear PCM WAV encoded to base64 audio stream     |
+|    - Decoded and played directly in browser via HTML5 Audio API             |
+|                                                                             |
+| 3. Supported Indic Languages:                                               |
+|    - Telugu (te-IN - తెలుగు)                                                |
+|    - Hindi (hi-IN - हिन्दी)                                                 |
+|    - Indian English (en-IN)                                                 |
+|    - Tamil (ta-IN - தமிழ்)                                                  |
+|    - Kannada (kn-IN - ಕನ್ನಡ)                                                |
+|    - Malayalam (ml-IN - മലയാളം)                                             |
++-----------------------------------------------------------------------------+
+```
 
 ---
 
@@ -75,7 +109,7 @@ Traditional enterprise retail software and modern POS tools present steep learni
 - **ORM & Database:** [SQLAlchemy 2.0](https://www.sqlalchemy.org/) with SQLite (WAL mode)
 - **Validation:** [Pydantic v2](https://docs.pydantic.dev/)
 - **HTTP Client:** [HTTPX](https://www.python-httpx.org/)
-- **Voice Services:** [Gnani.ai](https://gnani.ai/) Prisma STT & Timbre TTS REST APIs
+- **Voice Services:** [Gnani.ai](https://gnani.ai/) Prisma STT & Timbre TTS REST APIs (Exclusive Voice AI Engine)
 - **Testing:** [pytest](https://docs.pytest.org/) & `pytest-asyncio`
 
 ### Frontend
@@ -229,6 +263,9 @@ pip install -r requirements.txt
 # Configure environment variables
 cp .env.example .env
 ```
+
+> [!TIP]
+> Add your `GNANI_API_KEY` and `GNANI_ACCESS_KEY` to `.env` to activate live neural voice transcription (Gnani Prisma STT) and voice synthesis (Gnani Timbre TTS).
 
 ### 3. Frontend Setup
 ```bash
