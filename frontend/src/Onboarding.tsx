@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import {
   AudioLines, ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronRight,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import './onboarding.css'
 import { useLanguage } from './i18n'
+import { api } from './api'
 
 export type StoreProfile = {
   ownerName: string
@@ -46,28 +47,54 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const [city, setCity] = useState('')
   const [playing, setPlaying] = useState(false)
   const [formError, setFormError] = useState('')
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const selectedLanguage = useMemo(() => LANGUAGES.find(item => item.code === selectedCode) ?? LANGUAGES[0], [selectedCode])
   const steps = ['Your details', 'Language', 'How you interact', 'Your store'].map(t)
 
-  function previewGreeting() {
-    if (!('speechSynthesis' in window)) {
-      setFormError('Speech preview is not available in this browser. You can still continue.')
-      return
+  useEffect(() => {
+    return () => {
+      stopPreview()
     }
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(selectedLanguage.greeting)
-    utterance.lang = selectedLanguage.code
-    utterance.rate = 0.88
-    utterance.onstart = () => setPlaying(true)
-    utterance.onend = () => setPlaying(false)
-    utterance.onerror = () => setPlaying(false)
-    window.speechSynthesis.speak(utterance)
-  }
+  }, [])
 
   function stopPreview() {
-    window.speechSynthesis?.cancel()
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+      } catch {}
+      audioRef.current = null
+    }
     setPlaying(false)
+  }
+
+  async function previewGreeting() {
+    stopPreview()
+    setFormError('')
+    setPlaying(true)
+    try {
+      const res = await api.voiceTTS(selectedLanguage.greeting, selectedLanguage.code)
+      if (res.audio_base64) {
+        const audio = new Audio('data:audio/wav;base64,' + res.audio_base64)
+        audioRef.current = audio
+        audio.onended = () => {
+          setPlaying(false)
+          audioRef.current = null
+        }
+        audio.onerror = () => {
+          setPlaying(false)
+          audioRef.current = null
+        }
+        await audio.play()
+      } else {
+        setPlaying(false)
+        setFormError(res.message || 'Gnani Timbre voice synthesis requires active GNANI_API_KEY.')
+      }
+    } catch (err: any) {
+      setPlaying(false)
+      setFormError(err?.message || 'Failed to synthesize voice preview via Gnani AI.')
+    }
   }
 
   function nextFromSignup(event: FormEvent) {

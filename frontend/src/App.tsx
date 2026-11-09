@@ -1382,8 +1382,8 @@ function VoiceModal({ onClose, onDataChanged }: { onClose: () => void; onDataCha
   const [inputQuery, setInputQuery] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const activeRecognitionRef = useRef<any>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const mediaStreamRef = useRef<MediaStream | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
 
   const getGreeting = (lang: string) => {
@@ -1421,28 +1421,27 @@ function VoiceModal({ onClose, onDataChanged }: { onClose: () => void; onDataCha
     })
   }, [language])
 
-  // Stop active recognition and recording on unmount
+  function stopMediaRecording() {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop()
+      } catch (err) {
+        console.warn('Error stopping media recorder:', err)
+      }
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(t => t.stop())
+      mediaStreamRef.current = null
+    }
+    setIsListening(false)
+  }
+
+  // Stop active recording on unmount
   useEffect(() => {
     return () => {
-      if (activeRecognitionRef.current) {
-        try { activeRecognitionRef.current.abort() } catch {}
-      }
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        try { mediaRecorderRef.current.stop() } catch {}
-      }
+      stopMediaRecording()
     }
   }, [])
-
-  function speakText(text: string) {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(text)
-      u.lang = language
-      u.rate = 1.0
-      u.pitch = 1.0
-      window.speechSynthesis.speak(u)
-    }
-  }
 
   async function handleSend(queryText: string) {
     const q = queryText.trim()
@@ -1459,12 +1458,10 @@ function VoiceModal({ onClose, onDataChanged }: { onClose: () => void; onDataCha
           const audio = new Audio('data:audio/wav;base64,' + res.audio_base64)
           audio.playbackRate = 1.0
           audio.preservesPitch = true
-          await audio.play().catch(() => speakText(res.reply))
-        } catch {
-          speakText(res.reply)
+          await audio.play()
+        } catch (audioErr) {
+          console.warn('Gnani Timbre audio playback notice:', audioErr)
         }
-      } else {
-        speakText(res.reply)
       }
 
       if (res.action_required && res.action_payload) {
@@ -1475,138 +1472,75 @@ function VoiceModal({ onClose, onDataChanged }: { onClose: () => void; onDataCha
 
       setMessages(prev => [...prev, { sender: 'assistant', text: res.reply, data: res.data }])
     } catch (err: any) {
-      const errMsg = err?.message || 'Could not process voice query.'
+      const errMsg = err?.message || 'Could not process voice query via Gnani AI.'
       setMessages(prev => [...prev, { sender: 'assistant', text: errMsg }])
-      speakText(errMsg)
     } finally {
       setLoading(false)
     }
   }
 
-  function stopMediaRecording() {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      try { mediaRecorderRef.current.stop() } catch {}
-    }
-  }
-
   async function startListeningSession() {
-    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    let webSpeechStarted = false
-
-    if (SpeechRec) {
-      try {
-        if (activeRecognitionRef.current) {
-          try { activeRecognitionRef.current.abort() } catch {}
-          activeRecognitionRef.current = null
-        }
-
-        const rec = new SpeechRec()
-        rec.continuous = false
-        rec.interimResults = true
-        rec.lang = language
-        rec.maxAlternatives = 1
-
-        rec.onresult = (event: any) => {
-          let interim = ''
-          let finalTranscript = ''
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript
-            } else {
-              interim += event.results[i][0].transcript
-            }
-          }
-          if (interim) {
-            setInputQuery(interim)
-            setListeningStatus(`Listening: "${interim}"`)
-          }
-          if (finalTranscript) {
-            const clean = finalTranscript.trim()
-            setInputQuery(clean)
-            setListeningStatus('')
-            setIsListening(false)
-            stopMediaRecording()
-            void handleSend(clean)
-          }
-        }
-
-        rec.onerror = (e: any) => {
-          setIsListening(false)
-          if (e.error === 'not-allowed') {
-            setListeningStatus('Microphone blocked. Please allow mic access in your browser.')
-          } else if (e.error === 'no-speech') {
-            setListeningStatus('No speech detected. Please speak closer to your mic.')
-          } else if (e.error === 'network') {
-            setListeningStatus('Network issue during recognition. Please type below.')
-          } else {
-            setListeningStatus(`Mic notice: ${e.error || 'Stopped listening'}`)
-          }
-        }
-
-        rec.onend = () => {
-          setIsListening(false)
-        }
-
-        rec.start()
-        activeRecognitionRef.current = rec
-        webSpeechStarted = true
-      } catch (err: any) {
-        console.warn('SpeechRecognition initialization error:', err)
-      }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setListeningStatus('Microphone recording is not supported in this browser.')
+      return
     }
 
-    // Audio recording via MediaRecorder for Gnani Prisma STT fallback
-    if (navigator.mediaDevices?.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        const mr = new MediaRecorder(stream)
-        audioChunksRef.current = []
-        mr.ondataavailable = e => {
-          if (e.data.size > 0) audioChunksRef.current.push(e.data)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      mediaStreamRef.current = stream
+      const mr = new MediaRecorder(stream)
+      mediaRecorderRef.current = mr
+      audioChunksRef.current = []
+
+      mr.ondataavailable = e => {
+        if (e.data && e.data.size > 0) {
+          audioChunksRef.current.push(e.data)
         }
-        mr.onstop = async () => {
-          stream.getTracks().forEach(t => t.stop())
-          if (!webSpeechStarted && audioChunksRef.current.length > 0) {
-            const blob = new Blob(audioChunksRef.current, { type: 'audio/wav' })
-            setListeningStatus('Transcribing voice audio...')
+      }
+
+      mr.onstop = async () => {
+        setIsListening(false)
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach(t => t.stop())
+          mediaStreamRef.current = null
+        }
+
+        if (audioChunksRef.current.length > 0) {
+          const blob = new Blob(audioChunksRef.current, { type: 'audio/wav' })
+          if (blob.size > 100) {
+            setListeningStatus('Transcribing voice via Gnani Prisma STT...')
             try {
               const res = await api.voiceTranscribe(blob, language)
-              const transcript = res.transcript || res.transcription || ''
+              const transcript = (res.transcript || res.transcription || '').trim()
               if (transcript) {
                 setInputQuery(transcript)
                 setListeningStatus('')
                 void handleSend(transcript)
               } else {
-                setListeningStatus('No speech detected in audio recording.')
+                setListeningStatus(res.message || 'No speech detected by Gnani Prisma STT.')
               }
-            } catch {
-              setListeningStatus('Transcription service unavailable. Please type below.')
+            } catch (err: any) {
+              setListeningStatus(err?.message || 'Gnani STT transcription service unreachable.')
             }
+          } else {
+            setListeningStatus('Voice audio recording was too brief.')
           }
         }
-        mr.start(250)
-        mediaRecorderRef.current = mr
-      } catch (err: any) {
-        if (!webSpeechStarted) {
-          setListeningStatus('Could not access microphone. Please check permissions.')
-        }
       }
-    }
 
-    setIsListening(true)
-    const curLang = LANGUAGES.find(l => l.code === language)?.label || 'your language'
-    setListeningStatus(`Listening now in ${curLang}… speak clearly`)
+      mr.start(250)
+      setIsListening(true)
+      const curLang = LANGUAGES.find(l => l.code === language)?.label || 'selected language'
+      setListeningStatus(`Listening via Gnani Prisma (${curLang})… speak, then click mic to send`)
+    } catch (err: any) {
+      setIsListening(false)
+      setListeningStatus('Could not access microphone. Please allow microphone permissions.')
+    }
   }
 
   function toggleListening() {
     if (isListening) {
-      if (activeRecognitionRef.current) {
-        try { activeRecognitionRef.current.stop() } catch {}
-        activeRecognitionRef.current = null
-      }
       stopMediaRecording()
-      setIsListening(false)
-      setListeningStatus('')
     } else {
       void startListeningSession()
     }
@@ -1622,12 +1556,10 @@ function VoiceModal({ onClose, onDataChanged }: { onClose: () => void; onDataCha
           const audio = new Audio('data:audio/wav;base64,' + res.audio_base64)
           audio.playbackRate = 1.0
           audio.preservesPitch = true
-          await audio.play().catch(() => speakText(res.reply))
-        } catch {
-          speakText(res.reply)
+          await audio.play()
+        } catch (audioErr) {
+          console.warn('Gnani Timbre audio playback notice:', audioErr)
         }
-      } else {
-        speakText(res.reply)
       }
       setMessages(prev => [...prev, { sender: 'assistant', text: res.reply, data: res.data }])
       setPendingAction(null)
@@ -1647,7 +1579,20 @@ function VoiceModal({ onClose, onDataChanged }: { onClose: () => void; onDataCha
       ? 'कार्रवाई रद्द कर दी गई।'
       : 'Action cancelled.'
     setMessages(prev => [...prev, { sender: 'assistant', text: cancelMsg }])
-    speakText(cancelMsg)
+  }
+
+  async function replayAssistantVoice(text: string) {
+    try {
+      const res = await api.voiceTTS(text, language)
+      if (res.audio_base64) {
+        const audio = new Audio('data:audio/wav;base64,' + res.audio_base64)
+        audio.playbackRate = 1.0
+        audio.preservesPitch = true
+        await audio.play()
+      }
+    } catch (err) {
+      console.warn('Gnani Timbre voice replay notice:', err)
+    }
   }
 
   // Suggestions by language
@@ -1738,8 +1683,8 @@ function VoiceModal({ onClose, onDataChanged }: { onClose: () => void; onDataCha
                   <button
                     className="icon-button"
                     style={{ padding: 2, color: 'inherit', opacity: 0.7 }}
-                    onClick={() => speakText(m.text)}
-                    title="Play voice again"
+                    onClick={() => replayAssistantVoice(m.text)}
+                    title="Play voice again (Gnani Timbre)"
                   >
                     <Volume2 size={13}/>
                   </button>

@@ -1,7 +1,6 @@
 """
 Gnani AI Service Provider Adapter for BharatVoice AI.
-Integrates Gnani Prisma STT and Gnani Timbre TTS using standard API structures.
-Includes graceful fallback / mock simulation when external API keys are not provisioned.
+Exclusively integrates Gnani Prisma STT and Gnani Timbre TTS for all voice operations.
 """
 import os
 import io
@@ -50,7 +49,7 @@ async def transcribe_speech(
     language_code: str = "en-IN",
 ) -> Dict[str, Any]:
     """
-    Transcribes audio using Gnani Prisma STT (or fallback interpreter if unconfigured).
+    Transcribes audio exclusively using Gnani Prisma STT.
     Supported languages include: en-IN, hi-IN, ta-IN, te-IN, kn-IN, mr-IN, etc.
     """
     if not audio_bytes or len(audio_bytes) == 0:
@@ -80,18 +79,20 @@ async def transcribe_speech(
                         "confidence": resp_json.get("confidence", 0.95),
                         "provider": "gnani-prisma",
                         "language": language_code,
+                        "success": bool(transcript.strip()),
                     }
                 else:
                     logger.warning("Gnani STT API returned status %d: %s", res.status_code, res.text)
         except Exception as exc:
             logger.error("Failed to connect to Gnani STT API: %s", exc)
 
-    # When no external Gnani credentials are set or API unreachable, return provider status
+    # When Gnani credentials are not set or API is unreachable
     return {
         "transcript": "",
         "confidence": 0.0,
-        "provider": "unconfigured",
+        "provider": "gnani-prisma",
         "language": language_code,
+        "success": False,
         "message": "Gnani credentials not configured. Set GNANI_API_KEY in environment to enable live speech-to-text.",
     }
 
@@ -102,8 +103,8 @@ async def synthesize_speech(
     voice_gender: str = "female",
 ) -> Dict[str, Any]:
     """
-    Synthesizes speech using Gnani Timbre TTS.
-    Returns audio format and stream/URL or fallback metadata.
+    Synthesizes speech exclusively using Gnani Timbre TTS.
+    Returns audio WAV bytes encoded as base64 string.
     """
     if not text.strip():
         raise ValueError("Text to synthesize is empty.")
@@ -169,8 +170,8 @@ async def synthesize_speech(
     return {
         "success": False,
         "audio_base64": None,
-        "format": "text-only",
-        "provider": "browser-speech-fallback",
-        "message": "Gnani credentials not configured or unreachable. Browser SpeechSynthesis fallback recommended.",
+        "format": None,
+        "provider": "gnani-timbre",
+        "message": "Gnani credentials not configured or unreachable. Set GNANI_API_KEY in environment for Timbre TTS.",
     }
 

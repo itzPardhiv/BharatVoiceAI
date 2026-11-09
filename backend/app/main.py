@@ -1592,13 +1592,14 @@ async def transcribe_voice(
     audio: UploadFile = File(...),
     language_code: str = Form("en-IN"),
 ):
-    """Transcribes uploaded audio via Gnani Prisma STT (or returns fallback notice)."""
+    """Transcribes uploaded audio exclusively via Gnani Prisma STT."""
     if not is_gnani_configured():
         return {
             "success": False,
             "transcription": "",
-            "message": "Gnani credentials not configured. Web Speech API fallback active on client.",
+            "message": "Gnani Prisma credentials not configured. Set GNANI_API_KEY in environment for speech-to-text.",
             "live_gnani": False,
+            "provider": "gnani-prisma",
         }
 
     audio_bytes = await audio.read()
@@ -1609,8 +1610,41 @@ async def transcribe_voice(
         "transcript": text,
         "transcription": text,
         "confidence": res.get("confidence", 0.95),
-        "provider": res.get("provider", "gnani-prisma"),
+        "provider": "gnani-prisma",
         "language": language_code,
+        "live_gnani": True,
+    }
+
+
+class VoiceTTSRequest(BaseModel):
+    text: str
+    language_code: str = "en-IN"
+    voice_gender: str = "female"
+
+
+@app.post("/api/voice/tts")
+async def synthesize_voice_endpoint(payload: VoiceTTSRequest):
+    """Synthesizes speech exclusively via Gnani Timbre TTS."""
+    if not is_gnani_configured():
+        return {
+            "success": False,
+            "audio_base64": None,
+            "message": "Gnani Timbre credentials not configured. Set GNANI_API_KEY in environment for Timbre TTS.",
+            "live_gnani": False,
+            "provider": "gnani-timbre",
+        }
+
+    res = await synthesize_speech(
+        text=payload.text,
+        language_code=payload.language_code,
+        voice_gender=payload.voice_gender,
+    )
+    return {
+        "success": res.get("success", False),
+        "audio_base64": res.get("audio_base64"),
+        "format": res.get("format", "audio/wav"),
+        "provider": "gnani-timbre",
+        "live_gnani": True,
     }
 
 
@@ -1619,7 +1653,7 @@ def voice_status():
     """Checks whether live Gnani conversational AI credentials are active."""
     return {
         "live_gnani": is_gnani_configured(),
-        "provider": "Gnani.ai (Prisma STT + Timbre TTS)" if is_gnani_configured() else "Web Speech API (Browser Fallback)",
+        "provider": "Gnani.ai (Prisma STT + Timbre TTS)",
         "supported_languages": [
             {"code": "en-IN", "label": "Indian English"},
             {"code": "hi-IN", "label": "Hindi (हिंदी)"},

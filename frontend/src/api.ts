@@ -72,14 +72,30 @@ export const api = {
     const formData = new FormData()
     formData.append('audio', audioBlob, 'recording.wav')
     formData.append('language_code', languageCode)
-    const base = (import.meta as any).env?.VITE_API_BASE || ''
-    const res = await fetch(`${base}/api/voice/transcribe`, {
+    const res = await fetch(`${API_BASE}/api/voice/transcribe`, {
       method: 'POST',
       body: formData,
     })
-    if (!res.ok) throw new Error('Failed to transcribe audio')
-    return res.json() as Promise<{ transcript?: string; transcription?: string; success?: boolean }>
+    if (!res.ok) throw new Error('Failed to transcribe audio via Gnani Prisma STT')
+    return res.json() as Promise<{
+      transcript?: string
+      transcription?: string
+      success?: boolean
+      provider?: string
+      message?: string
+    }>
   },
+  voiceTTS: (text: string, languageCode = 'en-IN', voiceGender = 'female') =>
+    request<{
+      success: boolean
+      audio_base64?: string
+      format?: string
+      provider?: string
+      message?: string
+    }>('/api/voice/tts', {
+      method: 'POST',
+      body: JSON.stringify({ text, language_code: languageCode, voice_gender: voiceGender }),
+    }),
   suppliers: () => request<any[]>('/api/suppliers'),
   createSupplier: (data: { name: string; contact_person?: string; phone?: string; address?: string; gstin?: string }) =>
     request<any>('/api/suppliers', { method: 'POST', body: JSON.stringify(data) }),

@@ -51,15 +51,14 @@ graph TD
 
 ---
 
-## 🎙️ Multilingual Voice NLP Pipeline
+## 🎙️ Multilingual Voice Engine (Gnani AI Exclusive)
 
-BharatVoice AI implements a hybrid voice architecture combining edge fallbacks with cloud neural engines:
+BharatVoice AI implements an exclusive Indic voice architecture powered by **Gnani.ai**:
 
 1. **Audio Capture & Streaming:**
-   - Web Speech API for low-latency in-browser recognition.
-   - `MediaRecorder` audio chunking (16-bit 48 kHz PCM) streaming to **Gnani Prisma STT** when high-accuracy Indic speech recognition is required.
+   - HTML5 `MediaRecorder` audio capture (16-bit 48 kHz PCM / WAV container) streaming directly to **Gnani Prisma STT** (`/api/voice/transcribe`) for high-accuracy Indic speech recognition.
 2. **Intent Parsing & Entity Extraction (`backend/app/voice_service.py`):**
-   - Natural language queries in Telugu, Hindi, or Indian English are parsed for retail intents:
+   - Natural language queries in Telugu, Hindi, Indian English, Tamil, Kannada, and Malayalam are parsed for retail intents:
      - `CHECK_SALES` (*"ఈ రోజు అమ్మకాలు ఎంత?"* / *"Today's sales"*)
      - `CHECK_STOCK` (*"టాటా సాల్ట్ స్టాక్ ఎంత?"* / *"Stock of Tata Salt"*)
      - `CREATE_BILL` (*"2 packets of milk"* / *"Add 5 kg rice"*)
@@ -69,7 +68,7 @@ BharatVoice AI implements a hybrid voice architecture combining edge fallbacks w
    - Returns `action_required: true` and an `action_payload`.
    - The user must explicitly inspect and confirm the action before it commits to the ledger.
 4. **Speech Response Generation (`backend/app/gnani_service.py`):**
-   - Replies are synthesized via **Gnani Timbre TTS** in the store owner's native language (e.g. `te-IN`, `hi-IN`, `en-IN`), falling back gracefully to client-side speech synthesis if offline.
+   - Assistant voice responses are synthesized via **Gnani Timbre TTS** (`/api/voice/process` & `/api/voice/tts`) in the store owner's native language (e.g. `te-IN`, `hi-IN`, `en-IN`), returning 48 kHz audio WAV streams played directly in the client.
 
 ---
 
@@ -98,3 +97,4 @@ Every commit runs inside an atomic SQLAlchemy transaction block with rollbacks o
 - **`Sale` & `SaleItem`**: Bill sequence number, customer name, total amount, payment method, tax rate, itemized quantities and rates.
 - **`LedgerEntry`**: Double-entry ledger journal lines with account codes, debit/credit values, timestamps, and reference IDs.
 - **`AuditLog`**: Hash-fingerprinted tamper-evident audit record for every write operation.
+

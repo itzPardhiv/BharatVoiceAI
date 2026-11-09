@@ -51,7 +51,7 @@ Traditional enterprise retail software and modern POS tools present steep learni
 - **Democratize Retail Technology:** Provide an intuitive, voice-first interface where store owners can speak naturally in their mother tongue.
 - **Enforce Financial Integrity:** Implement strict double-entry ledger mechanics where every transaction maintains debit/credit parity and generates audit trails.
 - **Guarantee Action Safety:** Introduce a **Financial Safety Confirmation Gate** that intercepts balance-altering operations and requires explicit user verification before committing.
-- **Ensure High Availability:** Deliver an offline-capable, local-first architecture (SQLite WAL mode + Web Speech fallback) with optional cloud neural AI integration (Gnani Prisma & Timbre).
+- **Ensure High Availability:** Deliver a resilient, local-first architecture (SQLite WAL mode + Gnani Conversational Voice Engine) with neural Indic speech integration (Gnani Prisma & Timbre).
 
 ---
 
@@ -106,9 +106,9 @@ graph TD
         Accounting["Double-Entry Ledger Engine"]
     end
 
-    subgraph SpeechEngines ["Speech & Language Services"]
-        Gnani["Gnani.ai (Prisma STT & Timbre TTS)"]
-        WebSpeech["Browser Speech Synthesis Fallback"]
+    subgraph SpeechEngines ["Exclusive Voice Engine"]
+        GnaniSTT["Gnani Prisma STT (Speech-to-Text)"]
+        GnaniTTS["Gnani Timbre TTS (Text-to-Speech)"]
     end
 
     subgraph Persistence ["Persistence Layer"]
