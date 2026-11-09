@@ -34,31 +34,34 @@
 
 ## 📖 Overview
 
-**BharatVoice AI** is an intelligent, voice-first retail management and Point-of-Sale (POS) platform designed to bridge the digital divide for retail shopkeepers across India. Powered exclusively by **Gnani.ai's** neural Indic voice stack alongside strict double-entry ledger mechanics, BharatVoice AI enables store owners to speak naturally in their mother tongue (Telugu, Hindi, Indian English, Tamil, Kannada, or Malayalam) to check inventory, track gross and net profits, generate itemized tax receipts, and record expenses safely.
+**BharatVoice AI** is an intelligent, voice-first retail management, Point-of-Sale (POS), and assistive technology platform designed to bridge the digital divide for retail shopkeepers across India. Powered exclusively by **Gnani.ai's** neural Indic voice stack alongside strict double-entry ledger mechanics, BharatVoice AI enables store owners—including differently-abled, visually impaired, and elderly merchants—to operate their business completely hands-free. By speaking naturally in their mother tongue (Telugu, Hindi, Indian English, Tamil, Kannada, or Malayalam), shopkeepers can check inventory, calculate gross and net profits, generate itemized tax receipts, and record expenses safely without keyboard or mouse dependency.
 
 ---
 
 ## ⚠️ Problem Statement
 
-Traditional enterprise retail software and modern POS tools present steep learning curves for independent store owners in India:
-1. **Language Barriers:** Most commercial retail software is strictly English-first, ignoring native regional languages spoken daily by shopkeepers.
-2. **Keyboard Friction:** Busy store counters make manual typing and mouse navigation slow during rush hours.
-3. **Financial Vulnerability:** Unverified voice-to-action systems can accidentally execute destructive balance transfers, incorrect cash drawer debits, or corrupted stock counts.
-4. **Cloud Brittleness:** Many platforms fail completely when rural or suburban internet connectivity fluctuates.
+Traditional enterprise retail software and modern POS tools present steep barriers for independent store owners in India:
+1. **Severe Exclusion of Differently-Abled & Elderly Merchants:** Conventional POS and billing software strictly mandate visual inspection, manual keyboard typing, and precise mouse/touchscreen interactions. Store owners with physical disabilities, visual impairments, tremors, arthritis, or limited motor dexterity are systematically excluded from managing their own billing and inventory, making them vulnerable to financial dependence or exploitation.
+2. **Language Barriers:** Most commercial retail software is strictly English-first, ignoring native regional languages spoken daily by shopkeepers in non-metro and rural belts.
+3. **Counter Speed & Keyboard Friction:** In crowded neighborhood kiranas and busy supermarkets, typing item names and finding buttons creates long queues and operational fatigue.
+4. **Financial Vulnerability in Voice Systems:** Generic voice-to-action tools lack safety checkpoints; an unintended utterance or misrecognized number could trigger destructive balance transfers, ledger corruptions, or incorrect cash drawer settlements.
+5. **Cloud Brittleness:** Many cloud-only platforms crash or freeze when suburban and rural connectivity drops, paralyzing checkout lines.
 
 ---
 
 ## 🎯 Project Objectives
 
-- **Democratize Retail Technology:** Provide an intuitive, voice-first interface where store owners can speak naturally in their mother tongue.
-- **Enforce Financial Integrity:** Implement strict double-entry ledger mechanics where every transaction maintains debit/credit parity and generates audit trails.
-- **Guarantee Action Safety:** Introduce a **Financial Safety Confirmation Gate** that intercepts balance-altering operations and requires explicit user verification before committing.
+- **Empower Differently-Abled & Motor-Impaired Store Owners:** Transform retail billing into an accessible, hands-free experience so individuals with visual, physical, or motor disabilities can run their businesses with dignity and full operational autonomy.
+- **Democratize Retail Technology Through Indic Voice:** Provide an intuitive voice interface where shopkeepers speak comfortably in their native language (Telugu, Hindi, Tamil, Kannada, Malayalam, English).
+- **Enforce Financial Integrity:** Implement strict double-entry ledger mechanics where every transaction maintains debit/credit parity and generates tamper-evident audit trails.
+- **Guarantee Action Safety:** Introduce a **Financial Safety Confirmation Gate** that catches balance-altering operations and requires explicit voice or button verification before ledger commitment.
 - **Exclusively Integrate Indic AI Voice:** Standardize 100% of speech recognition and voice synthesis on **Gnani.ai (Prisma STT & Timbre TTS)**, removing third-party or browser-fallback dependencies.
 
 ---
 
 ## ✨ Key Features
 
+- **♿ Inclusive Assistive Technology for Differently-Abled Retailers:** Voice-in and voice-out bidirectional feedback allows visually impaired, motor-disabled, and elderly shopkeepers to manage store operations hands-free and eyes-free with 100% voice clarity.
 - **🗣️ Exclusive Gnani.ai Indic Voice Engine:** 100% powered by Gnani Prisma STT for speech transcription and Gnani Timbre TTS for natural Indic speech synthesis across Telugu, Hindi, Indian English, Tamil, Kannada, and Malayalam.
 - **🛡️ Financial Safety Confirmation Gate:** Any spoken or typed command altering finances (e.g., *"Record electricity expense of 500 rupees"*) is caught by an amber confirmation gate, preventing unapproved ledger mutations.
 - **📊 Real-Time Central Dashboard:** Tracks Today's Sales, Completed Transactions, Products Listed, and Low-Stock Warnings alongside a 7-day sales velocity AreaChart.
